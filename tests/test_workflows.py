@@ -191,7 +191,7 @@ def test_ci_has_the_two_checks_the_ruleset_requires():
     ci = load("ci")
     assert set(ci["jobs"]) == {"test", "terraform"}
     assert ci["jobs"]["test"]["name"] == "test" and ci["jobs"]["terraform"]["name"] == "terraform"
-    assert set(triggers(ci)) == {"pull_request", "push"} and triggers(ci)["push"]["branches"] == ["main"]
+    assert set(triggers(ci)) == {"pull_request"}   # PRs only: the ruleset makes them up to date with main
 
 
 def test_ci_tests_with_the_demo_model_and_checks_terraform_format_validate_and_tests():
