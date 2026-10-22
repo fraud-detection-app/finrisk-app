@@ -86,6 +86,12 @@ jobs:
           ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
           echo "::add-mask::$ACCOUNT_ID"
 
+      # The release image copies the Lambda Web Adapter from ECR Public. Pulled anonymously from GitHub's shared runner
+      # addresses it hits ECR Public's 500 GB/month limit ("429 Too Many Requests: Data limit exceeded"); signed in, the
+      # pull counts against our account. ECR Public signs in through us-east-1 whatever the Region of the rest.
+      - name: Sign in to ECR Public (the Lambda Web Adapter's registry)
+        run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
       - name: Is this commit already built?
         id: exists
         run: |

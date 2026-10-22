@@ -224,6 +224,15 @@ def test_deliver_builds_once_by_commit_sha_and_skips_an_existing_tag():
     assert build["permissions"] == {"id-token": "write", "contents": "read"}
 
 
+def test_deliver_signs_in_to_ecr_public_before_it_builds():
+    # anonymous pulls of the Lambda Web Adapter from GitHub's shared runners hit ECR Public's 500 GB/month limit (429)
+    names = [s.get("name", "") for s in steps(load("deliver")["jobs"]["build"])]
+    login = next(i for i, n in enumerate(names) if n.startswith("Sign in to ECR Public"))
+    assert login < names.index("Build the release image")
+    run = steps(load("deliver")["jobs"]["build"])[login]["run"]
+    assert "aws ecr-public get-login-password --region us-east-1" in run and "public.ecr.aws" in run
+
+
 def test_the_four_deploys_are_chained_in_order_each_in_its_own_environment():
     jobs = load("deliver")["jobs"]
     chain = [("deploy-dev", "build", "dev"), ("deploy-sit", "deploy-dev", "sit"),
